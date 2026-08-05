@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nourgeous — Birthday Invitation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<audio id="bgAudio" src="assets/song.mp3" preload="auto" loop></audio>
+
+<div class="viewport">
+  <div class="stage" id="stage">
+
+    <!-- SCENE 1 : the sealed envelope -->
+    <section class="scene scene--active" id="scene-1">
+      <img class="scene__bg" src="assets/scene1-envelope.png" alt="">
+
+      <button class="seal-btn" id="sealBtn" aria-label="افتحي الظرف">
+        <span class="seal-btn__ring"></span>
+        <span class="seal-btn__ring seal-btn__ring--delay"></span>
+        <img class="seal-btn__img" src="assets/seal-button.png" alt="">
+      </button>
+    </section>
+
+    <!-- SCENE 2 : envelope opens, photo + birthday message reveal -->
+    <section class="scene" id="scene-2">
+      <img class="s2__bg" src="assets/scene2/background.png" alt="">
+
+      <img class="s2__confetti" src="assets/scene2/confetti.png" alt="">
+
+      <img class="s2__balloons s2__balloons--left"  src="assets/scene2/balloons-left.png"  alt="">
+      <img class="s2__balloons s2__balloons--right" src="assets/scene2/balloons-right.png" alt="">
+
+      <img class="s2__envelope" src="assets/scene2/envelope.png" alt="">
+      <img class="s2__photo"    src="assets/scene2/photo.png" alt="Omar & the birthday girl">
+
+      <img class="s2__text s2__text--top"    src="assets/scene2/text-happy-birthday.png" alt="Happy Birthday Love!">
+      <img class="s2__text s2__text--bottom" src="assets/scene2/text-23-years.png" alt="23 Year of Nourgeous">
+    </section>
+
+    <!-- fixed intro scenes (1 & 2) live inside .stage; scrollable scenes go below it -->
+
+  </div>
+</div>
+
+<!-- SCENES 3+4 : Moments → A Song For You -->
+<!-- one continuous base background stays pinned behind both (no seam between them);
+     the Moments decoration sits right on top of it, in full (not clipped);
+     back4 is layered in only over the Song section, covering the decoration there -->
+<section class="mm-wrap" id="mmWrap">
+
+  <div class="mm-backdrop">
+    <img class="mm-bg" src="assets/scene3/background.png" alt="">
+    <img class="mm-sparkle" src="assets/shared/sparkles.png" alt="">
+  </div>
+
+  <img class="mm-decoration" src="assets/scene3/decoration.png" alt="">
+
+  <img class="mm-bg-song" src="assets/shared/back4.png" alt="">
+
+  <!-- SCENE 3 : Moments -->
+  <div class="scene3" id="scene-3">
+    <img class="s3__title" src="assets/scene3/text-moments.png" alt="Moments">
+
+    <div class="moments-gallery" id="momentsGallery">
+      <img class="moment-card moment-card--1" src="assets/scene3/moments/moment-1.png" alt="Padel Girl — March 2026">
+      <img class="moment-card moment-card--2" src="assets/scene3/moments/moment-2.png" alt="Sokhna Time — September 2025">
+      <img class="moment-card moment-card--3" src="assets/scene3/moments/moment-3.png" alt="Best Friend — 14 December">
+      <img class="moment-card moment-card--4" src="assets/scene3/moments/moment-4.png" alt="Ramadan Vibes — 11 March 2026">
+      <img class="moment-card moment-card--5" src="assets/scene3/moments/moment-5.png" alt="Marketing Specialist — 28 January 2026">
+    </div>
+  </div>
+
+  <!-- SCENE 4 : A Song For You -->
+  <div class="scene4" id="scene-4">
+
+    <div class="s4__heading">
+      <h2 class="s4__title">A Song For You</h2>
+      <p class="s4__subtitle">Play Our Song</p>
+    </div>
+
+    <div class="vinyl-wrap">
+      <div class="tonearm" id="tonearm">
+        <span class="tonearm__pivot"></span>
+        <span class="tonearm__arm"></span>
+        <span class="tonearm__head"></span>
+      </div>
+      <div class="vinyl-disc" id="vinylDisc">
+        <img class="vinyl-disc__artwork" src="assets/scene4/song-artwork.jpg" alt="">
+        <div class="vinyl-disc__grooves"></div>
+        <div class="vinyl-disc__label">
+          <img class="vinyl-disc__seal" src="assets/seal-button.png" alt="">
+        </div>
+        <div class="vinyl-disc__shine"></div>
+      </div>
+      <div class="note-fx" id="noteFx" aria-hidden="true"></div>
+    </div>
+
+    <div class="player" id="player">
+      <div class="player__waveform" id="waveform" aria-hidden="true"></div>
+
+      <div class="player__scrub">
+        <span class="player__time" id="timeCurrent">00:00</span>
+        <div class="player__bar" id="progressBar">
+          <div class="player__bar-track"></div>
+          <div class="player__bar-fill" id="progressFill"></div>
+          <div class="player__bar-dot" id="progressDot"></div>
+        </div>
+        <span class="player__time" id="timeTotal">00:00</span>
+      </div>
+
+      <div class="player__controls">
+        <button class="player__icon-btn player__icon-btn--heart" id="heartBtn" aria-label="Favorite">
+          <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10.2-9.2C.2 8.8 1.6 5 5.3 4.3c2.1-.4 4 .6 5.2 2.4a1 1 0 0 0 1 .5c.4 0 .8-.2 1-.5C13.7 4.9 15.6 3.9 17.7 4.3c3.7.7 5.1 4.5 3.5 7.5C18.5 16.4 12 21 12 21Z"/></svg>
+        </button>
+        <button class="player__icon-btn" id="prevBtn" aria-label="Rewind 10 seconds">
+          <svg viewBox="0 0 24 24"><path d="M11 6 3 12l8 6V6Z"/><path d="M21 6l-8 6 8 6V6Z"/></svg>
+        </button>
+        <button class="player__icon-btn player__icon-btn--play" id="playBtn" aria-label="Play or pause the song">
+          <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        </button>
+        <button class="player__icon-btn" id="nextBtn" aria-label="Forward 10 seconds">
+          <svg viewBox="0 0 24 24"><path d="M13 6l8 6-8 6V6Z"/><path d="M3 6l8 6-8 6V6Z"/></svg>
+        </button>
+        <button class="player__icon-btn" id="listBtn" aria-label="Song info">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h10v2H4z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCENE 5 : Us -->
+  <div class="scene5" id="scene-5">
+    <img class="s5__decoration" src="assets/scene5/decoration.png" alt="">
+    <div class="s5__title-wrap">
+      <img class="s5__title" src="assets/scene5/us-title.png" alt="Us">
+      <img class="s5__title-heart" src="assets/scene5/heart-solid-tr.png" alt="">
+    </div>
+
+    <div class="heart-collage" id="heartCollage">
+      <img class="heart-card heart-card--1"  src="assets/scene5/heart/photo-01.png" alt="">
+      <img class="heart-card heart-card--2"  src="assets/scene5/heart/photo-02.png" alt="">
+      <img class="heart-card heart-card--3"  src="assets/scene5/heart/photo-03.png" alt="">
+      <img class="heart-card heart-card--4"  src="assets/scene5/heart/photo-04.png" alt="">
+      <img class="heart-card heart-card--5"  src="assets/scene5/heart/photo-05.png" alt="">
+      <img class="heart-card heart-card--6"  src="assets/scene5/heart/photo-06.png" alt="">
+      <img class="heart-card heart-card--7"  src="assets/scene5/heart/photo-07.png" alt="">
+      <img class="heart-card heart-card--8"  src="assets/scene5/heart/photo-08.png" alt="">
+      <img class="heart-card heart-card--9"  src="assets/scene5/heart/photo-09.png" alt="">
+      <img class="heart-card heart-card--10" src="assets/scene5/heart/photo-10.png" alt="">
+      <img class="heart-card heart-card--11" src="assets/scene5/heart/photo-11.png" alt="">
+    </div>
+
+    <img class="s5__heart s5__heart--top-right" src="assets/scene5/heart-solid-tr.png" alt="">
+    <img class="s5__heart s5__heart--bottom-left" src="assets/scene5/heart-solid-bl.png" alt="">
+    <img class="s5__heart s5__heart--bottom-right" src="assets/scene5/heart-outline.png" alt="">
+  </div>
+
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>

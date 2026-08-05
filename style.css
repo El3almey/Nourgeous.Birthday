@@ -1,0 +1,1091 @@
+:root{
+  --stage-w: 1920px;
+  --stage-h: 1080px;
+  --letterbox: #1b2c30;
+  --gold: #c4956a;
+  --gold-light: #e8c9a0;
+}
+
+*{ box-sizing: border-box; margin:0; padding:0; }
+
+html, body{
+  width:100%;
+  min-height:100%;
+  background: var(--letterbox);
+  overflow-x: clip; /* NOT `hidden`, and NOT paired with an overflow-y rule below —
+                        either breaks position:sticky in Chrome. Vertical scrolling
+                        works fine with the default (visible) here. */
+}
+
+.viewport{
+  width:100vw;
+  height:100vh;
+  height:100dvh; /* mobile-safe: ignores the shifting address-bar height */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: var(--letterbox);
+  overflow:hidden;
+}
+
+.stage{
+  position: relative;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  flex-shrink: 0;
+  transform-origin: center center;
+  /* JS sets `transform: scale(x)` to fit the viewport, keeps every
+     scene pixel-perfect and aligned regardless of screen size */
+}
+
+.scene{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition: opacity .7s ease, visibility 0s linear .7s;
+  will-change: opacity;
+}
+
+.scene--active{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  z-index:1;
+  transition: opacity .7s ease, visibility 0s linear 0s;
+}
+
+.scene__bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit: cover;
+  user-select:none;
+  -webkit-user-drag:none;
+  pointer-events:none;
+}
+
+/* ---------- seal button (scene 1) ---------- */
+
+.seal-btn{
+  position:absolute;
+  left: 768px;
+  top: 453px;
+  width: 383px;
+  height: 394px;
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.seal-btn__img{
+  position:relative;
+  z-index:2;
+  width:100%;
+  height:100%;
+  display:block;
+  filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+  animation: sealBreathe 2.6s ease-in-out infinite;
+  transition: transform .15s ease, filter .15s ease;
+}
+
+.seal-btn:hover .seal-btn__img{
+  filter: drop-shadow(0 0 22px rgba(196,149,106,.55));
+}
+
+.seal-btn:active .seal-btn__img{
+  transform: scale(0.94);
+}
+
+.seal-btn__ring{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:70%;
+  height:70%;
+  border-radius:50%;
+  border: 2px solid var(--gold-light);
+  transform: translate(-50%,-50%) scale(1);
+  opacity:.75;
+  animation: sealPulse 2.6s cubic-bezier(.3,.6,.4,1) infinite;
+  pointer-events:none;
+}
+
+.seal-btn__ring--delay{
+  animation-delay: 1.3s;
+}
+
+@keyframes sealPulse{
+  0%   { transform: translate(-50%,-50%) scale(0.78); opacity:.7; }
+  70%  { opacity:0; }
+  100% { transform: translate(-50%,-50%) scale(1.35); opacity:0; }
+}
+
+@keyframes sealBreathe{
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .seal-btn__img{ animation:none; }
+  .seal-btn__ring{ animation:none; opacity:0; }
+}
+
+/* ============ SCENE 2 : the reveal ============ */
+
+#scene-2{
+  overflow:hidden;
+}
+
+.s2__bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+
+/* ---- ambient confetti (shimmer, loops only while scene is active) ---- */
+.s2__confetti{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;
+  opacity:.85;
+}
+
+#scene-2.scene--active .s2__confetti{
+  animation: confettiShimmer 5.5s ease-in-out infinite;
+}
+
+@keyframes confettiShimmer{
+  0%, 100% { opacity:.8;  transform:translateY(0) scale(1); }
+  50%      { opacity:1;   transform:translateY(5px) scale(1.008); }
+}
+
+/* ---- ambient balloons (gentle float, loops only while scene is active) ---- */
+.s2__balloons{
+  position:absolute;
+  top:-50px;
+  width:500px;
+  height:auto;
+  pointer-events:none;
+}
+
+.s2__balloons--left{ left:-80px; }
+.s2__balloons--right{ right:-80px; }
+
+#scene-2.scene--active .s2__balloons--left{
+  animation: floatLeft 7s ease-in-out infinite;
+}
+#scene-2.scene--active .s2__balloons--right{
+  animation: floatRight 8s ease-in-out infinite;
+}
+
+@keyframes floatLeft{
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-18px) rotate(-1.2deg); }
+}
+
+@keyframes floatRight{
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-15px) rotate(1.2deg); }
+}
+
+/* ---- envelope (entrance: soft scale + fade) ---- */
+.s2__envelope{
+  position:absolute;
+  left:640px;
+  top:430px;
+  width:640px;
+  height:auto;
+  z-index:2;
+  opacity:0;
+}
+
+#scene-2.scene--active .s2__envelope{
+  animation: envelopeIn 1s cubic-bezier(.16,1,.3,1) .15s both;
+}
+
+@keyframes envelopeIn{
+  0%   { opacity:0; transform: scale(.92); }
+  100% { opacity:1; transform: scale(1); }
+}
+
+/* ---- photo (rises up out of the envelope opening) ---- */
+.s2__photo{
+  position:absolute;
+  left:700px;
+  top:405px;
+  width:520px;
+  height:auto;
+  z-index:3;
+  opacity:0;
+  filter: drop-shadow(0 18px 30px rgba(0,0,0,.45));
+}
+
+#scene-2.scene--active .s2__photo{
+  animation: photoRise 1s cubic-bezier(.16,1,.3,1) .55s both;
+}
+
+@keyframes photoRise{
+  0%   { opacity:0; transform: translateY(70px); }
+  100% { opacity:1; transform: translateY(0); }
+}
+
+/* ---- headline text (falls in from above, settles smoothly) ---- */
+.s2__text{
+  position:absolute;
+  z-index:4;
+  pointer-events:none;
+  opacity:0;
+}
+
+.s2__text--top{
+  left:740px;
+  top:95px;
+  width:440px;
+  height:auto;
+}
+
+.s2__text--bottom{
+  left:680px;
+  top:760px;
+  width:560px;
+  height:auto;
+}
+
+#scene-2.scene--active .s2__text--top{
+  animation: textFall 1.1s cubic-bezier(.16,1,.3,1) 1s both;
+}
+
+#scene-2.scene--active .s2__text--bottom{
+  animation: textFallFar 1.2s cubic-bezier(.16,1,.3,1) 1.35s both;
+}
+
+@keyframes textFall{
+  0%   { opacity:0; transform: translateY(-140px); }
+  100% { opacity:1; transform: translateY(0); }
+}
+
+@keyframes textFallFar{
+  0%   { opacity:0; transform: translateY(-480px); }
+  100% { opacity:1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .s2__confetti, .s2__balloons, .s2__envelope, .s2__photo, .s2__text{
+    animation: none !important;
+    opacity:1 !important;
+    transform:none !important;
+  }
+}
+
+/* ============ SCENES 3+4 shared backdrop : Moments → A Song For You ============ */
+/* one continuous base background, pinned via position:sticky so there's no seam
+   between the two — the Moments decoration sits on top of it in full (this layer
+   is NOT clipped, so nothing gets cropped), and back4 is layered in ONLY over the
+   Song section (as its own patch), covering the decoration there. */
+
+.mm-wrap{
+  position:relative;
+  width:100%;
+  height:300vh;
+  height:300dvh;
+  background: var(--letterbox);
+}
+
+.mm-backdrop{
+  position:sticky;
+  top:0;
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+  z-index:0;
+}
+
+.mm-bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+  z-index:0;
+}
+
+.mm-sparkle{
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+  z-index:1;
+  opacity:0;
+}
+
+.mm-wrap.mm--in-view .mm-sparkle{
+  animation: mmSparkleIn 1.4s ease-out .1s forwards,
+             mmSparkleTwinkle 3.2s ease-in-out 1.5s infinite;
+}
+
+@keyframes mmSparkleIn{
+  0%   { opacity:0; }
+  100% { opacity:1; }
+}
+
+@keyframes mmSparkleTwinkle{
+  0%, 100% { opacity:.75; }
+  50%      { opacity:1; }
+}
+
+/* the Moments decoration: sits directly on .mm-wrap (not inside the clipped
+   .mm-backdrop), so the full graphic always shows, never cropped. z-index 1
+   keeps it above the base backdrop but under Scene 3/4 content (z-index 2);
+   back4 (.mm-bg-song, also z-index 1 but declared after it) paints over it
+   for the Song section only, so it reads as "underneath" once you get there. */
+.mm-decoration{
+  position:absolute;
+  left:0;
+  top:2.13%;
+  width:100%;
+  height:auto;
+  pointer-events:none;
+  opacity:0;
+  z-index:1;
+}
+
+/* entrance: triggered once by JS when the shared backdrop scrolls into frame,
+   and left alone afterwards so it doesn't fade out/in again mid-way */
+.mm-wrap.mm--in-view .mm-decoration{
+  animation: s3DecoIn 1.1s cubic-bezier(.16,1,.3,1) .1s forwards,
+             s3DecoShimmer 5s ease-in-out 1.2s infinite;
+}
+
+/* back4 — the Song section's own backdrop, layered over the shared base +
+   decoration only for its own 100vh, so it reads as sitting "under the song" */
+.mm-bg-song{
+  position:absolute;
+  top:100vh;
+  top:100dvh;
+  left:0;
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  object-fit:cover;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+  z-index:1;
+}
+
+.scene3{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  z-index:2;
+}
+
+.s3__title{
+  position:absolute;
+  left:39.58%;
+  top:9.72%;
+  width:20.31%;
+  height:auto;
+  pointer-events:none;
+  opacity:0;
+  filter: drop-shadow(0 0 24px rgba(196,149,106,0));
+}
+
+.scene3--in-view .s3__title{
+  animation: s3TitleIn 1.2s cubic-bezier(.16,1,.3,1) .35s forwards,
+             s3TitleGlow 4s ease-in-out 1.5s infinite;
+}
+
+@keyframes s3DecoIn{
+  0%   { opacity:0; transform: scale(.96); }
+  100% { opacity:1; transform: scale(1); }
+}
+
+@keyframes s3DecoShimmer{
+  0%, 100% { opacity:1; }
+  50%      { opacity:.8; }
+}
+
+@keyframes s3TitleIn{
+  0%   { opacity:0; transform: translateY(24px); }
+  100% { opacity:1; transform: translateY(0); }
+}
+
+@keyframes s3TitleGlow{
+  0%, 100% { filter: drop-shadow(0 0 18px rgba(196,149,106,.35)); }
+  50%      { filter: drop-shadow(0 0 30px rgba(196,149,106,.6)); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .mm-decoration, .mm-sparkle, .s3__title{
+    animation:none !important;
+    opacity:1 !important;
+    transform:none !important;
+  }
+}
+
+/* ============ Moments gallery — scattered polaroid collage, like a table full of memories ============ */
+
+.moments-gallery{
+  position:absolute;
+  left:50%;
+  top:58%;
+  transform: translate(-50%,-50%);
+  width:min(920px, 92vw);
+  height:min(640px, 64vh);
+  z-index:2;
+}
+
+.moment-card{
+  position:absolute;
+  width:26%;
+  height:auto;
+  border-radius:3px;
+  box-shadow: 0 14px 34px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
+  opacity:0;
+  transform: translateY(30px) scale(.92) rotate(var(--tilt, 0deg));
+  transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .3s ease, z-index 0s;
+  will-change: transform, opacity;
+}
+
+/* scattered placement, tuned to echo a memories-on-the-table collage */
+.moment-card--1{ left:6%;  top:4%;   width:23%; --tilt:-7deg;  z-index:2; }
+.moment-card--2{ left:35%; top:2%;   width:21%; --tilt:4deg;   z-index:3; }
+.moment-card--3{ left:64%; top:8%;   width:22%; --tilt:-4deg;  z-index:2; }
+.moment-card--4{ left:13%; top:46%;  width:23%; --tilt:5deg;   z-index:4; }
+.moment-card--5{ left:43%; top:49%;  width:25%; --tilt:-3deg;  z-index:5; }
+
+.moments-gallery--in-view .moment-card{
+  opacity:1;
+  transform: translateY(0) scale(1) rotate(var(--tilt, 0deg));
+  animation: momentSettle .8s cubic-bezier(.16,1,.3,1) both;
+}
+
+/* stagger the reveal, card by card */
+.moments-gallery--in-view .moment-card--1{ animation-delay: .05s; }
+.moments-gallery--in-view .moment-card--2{ animation-delay: .16s; }
+.moments-gallery--in-view .moment-card--3{ animation-delay: .27s; }
+.moments-gallery--in-view .moment-card--4{ animation-delay: .38s; }
+.moments-gallery--in-view .moment-card--5{ animation-delay: .49s; }
+
+@keyframes momentSettle{
+  0%   { opacity:0; transform: translateY(30px) scale(.92) rotate(var(--tilt, 0deg)); }
+  100% { opacity:1; transform: translateY(0) scale(1) rotate(var(--tilt, 0deg)); }
+}
+
+.moment-card:hover{
+  transform: translateY(-10px) scale(1.06) rotate(0deg) !important;
+  box-shadow: 0 22px 44px rgba(0,0,0,.5), 0 4px 14px rgba(0,0,0,.35);
+  transition: transform .3s ease, box-shadow .3s ease;
+  z-index:9 !important;
+}
+
+@media (max-width: 640px){
+  .moments-gallery{
+    top:56%;
+    width:94vw;
+    height:56vh;
+  }
+  .moment-card--1{ left:3%;  top:2%;  width:30%; }
+  .moment-card--2{ left:35%; top:0%;  width:28%; }
+  .moment-card--3{ left:65%; top:5%;  width:29%; }
+  .moment-card--4{ left:9%;  top:46%; width:30%; }
+  .moment-card--5{ left:40%; top:49%; width:33%; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .moment-card{
+    animation:none !important;
+    opacity:1 !important;
+    transform: rotate(var(--tilt, 0deg)) !important;
+  }
+}
+
+/* ============ SCENE 4 : A Song For You — same visual language as Moments ============ */
+
+.scene4{
+  position:absolute;
+  top:100vh;
+  top:100dvh;
+  left:0;
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  z-index:2;
+}
+
+/* ============ SCENE 5 : Us ============ */
+.scene5{
+  position:absolute;
+  top:200vh;
+  top:200dvh;
+  left:0;
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  z-index:2;
+}
+
+.s5__decoration{
+  position:absolute;
+  left:0;
+  top:2.13%;
+  width:100%;
+  height:auto;
+  pointer-events:none;
+  opacity:0;
+}
+
+.scene5--in-view .s5__decoration{
+  animation: s3DecoIn 1.1s cubic-bezier(.16,1,.3,1) .1s forwards,
+             s3DecoShimmer 5s ease-in-out 1.2s infinite;
+}
+
+.s5__title-wrap{
+  position:absolute;
+  left:44.53%;
+  top:7.87%;
+  width:10.83%;
+  display:flex;
+  align-items:center;
+  gap:.6em;
+}
+
+.s5__title{
+  position:relative;
+  width:100%;
+  height:auto;
+  pointer-events:none;
+  opacity:0;
+}
+
+.s5__title-heart{
+  position:relative;
+  width:22%;
+  height:auto;
+  margin-top:-4%;
+  pointer-events:none;
+  opacity:0;
+}
+
+.scene5--in-view .s5__title{
+  animation: s3TitleIn 1.2s cubic-bezier(.16,1,.3,1) .35s forwards,
+             s3TitleGlow 4s ease-in-out 1.5s infinite;
+}
+
+.scene5--in-view .s5__title-heart{
+  animation: s5HeartIn .9s cubic-bezier(.34,1.56,.64,1) .75s forwards;
+}
+
+/* ---- heart-shaped photo collage ---- */
+.heart-collage{
+  position:absolute;
+  left:50%;
+  top:60%;
+  transform: translate(-50%,-50%);
+  width:min(760px, 74vw);
+  height:min(720px, 70vh);
+  z-index:2;
+}
+
+.heart-card{
+  position:absolute;
+  width:24%;
+  height:auto;
+  border-radius:3px;
+  box-shadow: 0 14px 34px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
+  opacity:0;
+  transform: translateY(30px) scale(.9) rotate(var(--tilt, 0deg));
+  transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .3s ease, z-index 0s;
+  will-change: transform, opacity;
+}
+
+/* traced roughly along a heart curve: two lobes up top, tapering to a point below */
+.heart-card--1  { left:-2%; top:20%; width:26%; --tilt:-16deg; z-index:3; }
+.heart-card--2  { left:13%; top:3%;  width:25%; --tilt:-6deg;  z-index:4; }
+.heart-card--3  { left:35%; top:14%; width:23%; --tilt:-9deg;  z-index:5; }
+.heart-card--4  { left:53%; top:12%; width:23%; --tilt:9deg;   z-index:5; }
+.heart-card--5  { left:71%; top:2%;  width:25%; --tilt:7deg;   z-index:4; }
+.heart-card--6  { left:0%;  top:42%; width:27%; --tilt:-11deg; z-index:6; }
+.heart-card--7  { left:78%; top:22%; width:24%; --tilt:17deg;  z-index:3; }
+.heart-card--8  { left:74%; top:44%; width:26%; --tilt:12deg;  z-index:6; }
+.heart-card--9  { left:23%; top:53%; width:26%; --tilt:-7deg;  z-index:7; }
+.heart-card--10 { left:52%; top:55%; width:26%; --tilt:8deg;   z-index:7; }
+.heart-card--11 { left:38%; top:73%; width:23%; --tilt:1deg;   z-index:8; }
+
+.scene5--in-view .heart-card{
+  opacity:1;
+  transform: translateY(0) scale(1) rotate(var(--tilt, 0deg));
+  animation: momentSettle .8s cubic-bezier(.16,1,.3,1) both;
+}
+
+.scene5--in-view .heart-card--1 { animation-delay: .10s; }
+.scene5--in-view .heart-card--2 { animation-delay: .18s; }
+.scene5--in-view .heart-card--3 { animation-delay: .26s; }
+.scene5--in-view .heart-card--4 { animation-delay: .34s; }
+.scene5--in-view .heart-card--5 { animation-delay: .42s; }
+.scene5--in-view .heart-card--6 { animation-delay: .50s; }
+.scene5--in-view .heart-card--7 { animation-delay: .58s; }
+.scene5--in-view .heart-card--8 { animation-delay: .66s; }
+.scene5--in-view .heart-card--9 { animation-delay: .74s; }
+.scene5--in-view .heart-card--10{ animation-delay: .82s; }
+.scene5--in-view .heart-card--11{ animation-delay: .90s; }
+
+.heart-card:hover{
+  transform: translateY(-10px) scale(1.08) rotate(0deg) !important;
+  box-shadow: 0 22px 44px rgba(0,0,0,.5), 0 4px 14px rgba(0,0,0,.35);
+  transition: transform .3s ease, box-shadow .3s ease;
+  z-index:20 !important;
+}
+
+.s5__heart{
+  position:absolute;
+  width:4.84%;
+  height:auto;
+  pointer-events:none;
+  opacity:0;
+  transform: scale(.4);
+}
+
+.s5__heart--top-right{
+  left:89.43%;
+  top:17.5%;
+}
+
+.s5__heart--bottom-left{
+  left:4.53%;
+  top:82.96%;
+}
+
+.s5__heart--bottom-right{
+  width:5.42%;
+  left:81.56%;
+  top:77.87%;
+}
+
+.scene5--in-view .s5__heart{
+  animation: s5HeartIn .9s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
+.scene5--in-view .s5__heart--top-right{ animation-delay: .55s; }
+.scene5--in-view .s5__heart--bottom-left{ animation-delay: .75s; }
+.scene5--in-view .s5__heart--bottom-right{ animation-delay: .95s; }
+
+@keyframes s5HeartIn{
+  0%   { opacity:0; transform: scale(.4); }
+  70%  { opacity:1; transform: scale(1.12); }
+  100% { opacity:1; transform: scale(1); }
+}
+
+.s4__heading{
+  position:absolute;
+  left:50%;
+  top:7%;
+  transform: translateX(-50%);
+  text-align:center;
+  width:90%;
+  opacity:0;
+  z-index:3;
+}
+
+.scene4--in-view .s4__heading{
+  animation: s4HeadingIn 1.2s cubic-bezier(.16,1,.3,1) .3s forwards;
+}
+
+@keyframes s4HeadingIn{
+  0%   { opacity:0; transform: translate(-50%, 24px); }
+  100% { opacity:1; transform: translate(-50%, 0); }
+}
+
+.s4__title{
+  font-family:'Playfair Display', serif;
+  font-style:italic;
+  font-weight:600;
+  font-size: clamp(28px, 4.2vw, 46px);
+  background: linear-gradient(180deg, var(--gold-light) 10%, var(--gold) 90%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  letter-spacing:.5px;
+  filter: drop-shadow(0 0 18px rgba(196,149,106,.35));
+  animation: s3TitleGlow 4s ease-in-out 1.5s infinite;
+}
+
+.s4__subtitle{
+  margin-top:6px;
+  font-family:'Montserrat', sans-serif;
+  font-weight:500;
+  font-size: clamp(11px, 1.1vw, 14px);
+  letter-spacing:.35em;
+  text-transform:uppercase;
+  color: var(--gold-light);
+  opacity:.85;
+}
+
+/* ---- vinyl record + tonearm ---- */
+.vinyl-wrap{
+  position:absolute;
+  left:50%;
+  top:44%;
+  transform: translate(-50%,-50%);
+  width: min(46vh, 340px);
+  height: min(46vh, 340px);
+  z-index:2;
+  opacity:0;
+}
+
+.scene4--in-view .vinyl-wrap{
+  animation: vinylIn 1s cubic-bezier(.16,1,.3,1) .5s forwards;
+}
+
+@keyframes vinylIn{
+  0%   { opacity:0; transform: translate(-50%,-50%) scale(.85); }
+  100% { opacity:1; transform: translate(-50%,-50%) scale(1); }
+}
+
+.vinyl-disc{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%, #0c0c0c 0 8%, #161616 8% 9%, #0c0c0c 9% 10%,
+      #161616 10% 11%, #0c0c0c 11% 12%, #161616 12% 13%, #0c0c0c 13%);
+  box-shadow: 0 20px 50px rgba(0,0,0,.55), inset 0 0 40px rgba(0,0,0,.6);
+  transition: box-shadow .3s ease;
+}
+
+.vinyl-disc__artwork{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:cover;
+  display:block;
+}
+
+.vinyl-disc__grooves{
+  position:absolute;
+  inset:6%;
+  border-radius:50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%,
+      rgba(255,255,255,.045) 0px, rgba(255,255,255,.045) 1px,
+      transparent 1px, transparent 4px);
+  opacity:.9;
+}
+
+.vinyl-disc__shine{
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background: linear-gradient(115deg, rgba(255,255,255,.16) 0%, transparent 28%, transparent 72%, rgba(255,255,255,.06) 100%);
+  pointer-events:none;
+}
+
+.vinyl-disc__label{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:34%;
+  height:34%;
+  transform: translate(-50%,-50%);
+  border-radius:50%;
+  overflow:hidden;
+  background: radial-gradient(circle, #223540 0%, #142225 100%);
+  box-shadow: 0 0 0 3px rgba(196,149,106,.6), 0 4px 14px rgba(0,0,0,.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.vinyl-disc__seal{
+  width:68%;
+  height:68%;
+  object-fit:contain;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.55));
+  pointer-events:none;
+}
+
+.vinyl-disc--spinning{
+  animation: vinylSpin 4.2s linear infinite;
+}
+
+@keyframes vinylSpin{
+  from{ transform: rotate(0deg); }
+  to  { transform: rotate(360deg); }
+}
+
+.tonearm{
+  position:absolute;
+  right:-6%;
+  top:-14%;
+  width:46%;
+  height:46%;
+  transform-origin: 88% 12%;
+  transform: rotate(-18deg);
+  transition: transform .5s cubic-bezier(.2,.7,.3,1);
+  z-index:3;
+  pointer-events:none;
+}
+
+.tonearm--playing{
+  transform: rotate(6deg);
+}
+
+.tonearm__pivot{
+  position:absolute;
+  right:2%;
+  top:2%;
+  width:16%;
+  height:16%;
+  border-radius:50%;
+  background: linear-gradient(145deg, var(--gold-light), var(--gold));
+  box-shadow: 0 3px 8px rgba(0,0,0,.5);
+}
+
+.tonearm__arm{
+  position:absolute;
+  right:9%;
+  top:8%;
+  width:6px;
+  height:78%;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+  border-radius:4px;
+  box-shadow: 0 3px 8px rgba(0,0,0,.4);
+}
+
+.tonearm__head{
+  position:absolute;
+  right:2%;
+  bottom:0%;
+  width:14%;
+  height:8%;
+  background: linear-gradient(145deg, var(--gold-light), var(--gold));
+  border-radius:3px;
+  box-shadow: 0 3px 8px rgba(0,0,0,.4);
+}
+
+/* ---- floating music notes, drifting up while the record spins ---- */
+.note-fx{
+  position:absolute;
+  inset:-40% -20%;
+  z-index:4;
+  pointer-events:none;
+  overflow:visible;
+}
+
+.music-note{
+  position:absolute;
+  left: var(--nx, 50%);
+  top: var(--ny, 50%);
+  color: var(--gold-light);
+  font-size: var(--nsize, 20px);
+  opacity:0;
+  transform: translate(-50%,-50%) rotate(var(--nrot, 0deg));
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+  animation: noteFloat var(--ndur, 2.6s) ease-out forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes noteFloat{
+  0%   { opacity:0; transform: translate(-50%,-50%) translate(0,0) scale(.6) rotate(var(--nrot,0deg)); }
+  12%  { opacity:1; }
+  100% { opacity:0; transform: translate(-50%,-50%) translate(var(--ndx,26px), -150px) scale(1.15) rotate(var(--nrot,0deg)); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .music-note{ animation:none !important; opacity:0 !important; }
+}
+
+/* ---- player: waveform + scrub bar + controls ---- */
+.player{
+  position:absolute;
+  left:50%;
+  bottom:6%;
+  transform: translateX(-50%);
+  width:min(560px, 88vw);
+  z-index:3;
+  opacity:0;
+  direction:ltr; /* a media player's timeline/controls read L→R even on an RTL page */
+}
+
+.scene4--in-view .player{
+  animation: playerIn 1s cubic-bezier(.16,1,.3,1) .75s forwards;
+}
+
+@keyframes playerIn{
+  0%   { opacity:0; transform: translate(-50%,20px); }
+  100% { opacity:1; transform: translate(-50%,0); }
+}
+
+.player__waveform{
+  display:flex;
+  align-items:center;
+  gap:2px;
+  height:34px;
+  margin-bottom:10px;
+}
+
+.player__waveform span{
+  flex:1 1 auto;
+  min-width:2px;
+  border-radius:2px;
+  background: rgba(232,201,160,.28);
+  transition: background .2s ease;
+}
+
+.player__waveform span.is-played{
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+}
+
+.player__scrub{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color: var(--gold-light);
+  font-family:'Montserrat', sans-serif;
+  font-size:12px;
+  letter-spacing:.05em;
+  opacity:.9;
+}
+
+.player__bar{
+  position:relative;
+  flex:1 1 auto;
+  height:16px;
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+}
+
+.player__bar-track{
+  position:absolute;
+  left:0; right:0;
+  height:2px;
+  background: rgba(232,201,160,.25);
+  border-radius:2px;
+}
+
+.player__bar-fill{
+  position:absolute;
+  left:0;
+  height:2px;
+  width:0%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius:2px;
+}
+
+.player__bar-dot{
+  position:absolute;
+  left:0%;
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  background: var(--gold-light);
+  box-shadow: 0 0 0 3px rgba(196,149,106,.3), 0 2px 6px rgba(0,0,0,.4);
+  transform: translateX(-50%);
+}
+
+.player__controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:22px;
+  margin-top:18px;
+}
+
+.player__icon-btn{
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  color: var(--gold-light);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:26px;
+  height:26px;
+  opacity:.85;
+  transition: opacity .2s ease, transform .15s ease;
+}
+
+.player__icon-btn svg{
+  width:100%;
+  height:100%;
+  fill: currentColor;
+}
+
+.player__icon-btn:hover{
+  opacity:1;
+  transform: translateY(-2px);
+}
+
+.player__icon-btn--play{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background: linear-gradient(145deg, var(--gold-light), var(--gold));
+  color:#1b2c30;
+  opacity:1;
+  box-shadow: 0 6px 18px rgba(0,0,0,.4);
+}
+
+.player__icon-btn--play svg{
+  width:46%;
+  height:46%;
+}
+
+.player__icon-btn--heart.is-active{
+  color:#e0745f;
+}
+
+@media (max-width: 640px){
+  .vinyl-wrap{
+    top:40%;
+    width:min(52vw, 280px);
+    height:min(52vw, 280px);
+  }
+  .player{
+    bottom:4%;
+  }
+  .player__controls{
+    gap:16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .s4__heading, .vinyl-wrap, .player, .mm-decoration, .s5__decoration, .s5__title, .s5__title-heart, .s5__heart, .heart-card{
+    animation:none !important;
+    opacity:1 !important;
+    transform:none !important;
+  }
+  .vinyl-disc--spinning{ animation:none !important; }
+}
